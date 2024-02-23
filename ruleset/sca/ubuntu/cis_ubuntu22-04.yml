@@ -876,8 +876,6 @@ checks:
       - soc_2: ["CC5.2", "CC6.1"]
     condition: all
     rules:
-      - 'f:/boot/grub/grub.cfg -> r:^\s*linux && r:apparmor=1'
-      - 'f:/boot/grub/grub.cfg -> r:^\s*linux && r:security=apparmor'
       - 'not f:/boot/grub/grub.cfg -> r:^\s*linux && !r:apparmor=1'
       - 'not f:/boot/grub/grub.cfg -> r:^\s*linux && !r:security=apparmor'
 
@@ -1501,7 +1499,7 @@ checks:
     condition: all
     rules:
       - "c:dpkg-query -s samba -> r:package 'samba' is not installed"
-      - "c:dpkg-query -W -f='${binary:Package}\\t${Status}\\t${db:Status-Status}\\n' samba -> r:no packages found matching sambad|deinstall|not-installed"
+      - "c:dpkg-query -W -f='${binary:Package}\\t${Status}\\t${db:Status-Status}\\n' samba -> r:no packages found matching samba|deinstall|not-installed"
 
   # 2.2.12 Ensure HTTP Proxy Server is not installed. (Automated)
   - id: 28562
@@ -1591,7 +1589,7 @@ checks:
       - soc_2: ["CC6.3", "CC6.6"]
     condition: all
     rules:
-      - 'not c:ss -lntu -> r:\.*:25\s && r:127.0.0.1:25\s+|::1]:25\s+'
+      - 'not c:ss -lntu -> r:\.*:25\s && !r:127.0.0.1:25\s+|::1]:25\s+'
 
   # 2.2.16 Ensure rsync service is either not installed or masked. (Automated)
   - id: 28566
@@ -1611,11 +1609,10 @@ checks:
       - pci_dss_v3.2.1: ["1.1.6", "1.2.1", "2.2.2", "2.2.5"]
       - pci_dss_v4.0: ["1.2.5", "2.2.4", "6.4.1"]
       - soc_2: ["CC6.3", "CC6.6"]
-    condition: all
+    condition: any
     rules:
-      - "c:dpkg-query -W -f='${binary:Package}\t${Status}\t${db:Status-Status}\\n' rsync -> r:no packages found matching rsync|deinstall|not-installed"
-      - 'c:systemctl is-active rsync" -> r:inactive'
-      - "c:systemctl is-enabled rsync -> r:masked|disabled"
+      - "c:dpkg-query -W -f='${binary:Package}\\t${Status}\\t${db:Status-Status}\\n' rsync -> r:no packages found matching rsync|deinstall|not-installed"
+      - "c:/bin/sh -c \"echo $(systemctl is-active rsync || systemctl is-enabled rsync)\" -> r:^inactive masked|^inactive disabled"
 
   # 2.3.1 Ensure NIS Client is not installed. (Automated)
   - id: 28567
@@ -2294,7 +2291,7 @@ checks:
       - pci_dss_v4.0: ["10.2.1", "10.2.1.1", "10.2.1.2", "10.2.1.3", "10.2.1.4", "10.2.1.5", "10.2.1.6", "10.2.1.7", "10.2.2", "5.3.4", "6.4.1", "6.4.2"]
     condition: all
     rules:
-      - 'not d:/boot -> r:\.*grub.cfg -> r:^\s*\t*linux && !r:audit=1'
+      - 'not d:/boot -> r:\.*grub.cfg -> r:^[\s\t]*linux && !r:audit=1'
 
   # 4.1.1.4 Ensure audit_backlog_limit is sufficient. (Automated)
   - id: 28593
@@ -2316,7 +2313,7 @@ checks:
       - pci_dss_v4.0: ["10.2.1", "10.2.1.1", "10.2.1.2", "10.2.1.3", "10.2.1.4", "10.2.1.5", "10.2.1.6", "10.2.1.7", "10.2.2", "5.3.4", "6.4.1", "6.4.2"]
     condition: all
     rules:
-      - 'not d:/boot -> r:\.*grub.cfg -> !r:audit_backlog_limit=\d+'
+      - 'not d:/boot -> r:\.*grub.cfg -> r:^[\s\t]*linux && !n:audit_backlog_limit=(\d+) compare >= 8192'
 
   # 4.1.2.1 Ensure audit log storage size is configured. (Automated)
   - id: 28594
